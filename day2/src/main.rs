@@ -6,7 +6,8 @@ fn main() {
     const GREEN: u32 = 13;
     const BLUE: u32 = 14;
     let mut sum_of_possible_games = 0;
-    let mut power_sum = 0;
+    // PART 2 (Comment part 1 and uncomment part 2 to get part 2 result)
+    // let mut power_sum = 0;
     for game in GAMES_RECORD.split('\n') {
         if !game.contains("Game") {
             continue;
