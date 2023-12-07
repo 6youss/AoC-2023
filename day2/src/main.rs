@@ -9,9 +9,6 @@ fn main() {
 
     let mut power_sum = 0;
     for game in GAMES_RECORD.split('\n') {
-        if !game.contains("Game") {
-            continue;
-        }
         let splited_line = game.split(":").collect::<Vec<&str>>();
 
         let game_str = splited_line[0];
