@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::engine_schematic::ENGINE_SCHEMATIC;
 
 mod engine_schematic;
@@ -5,8 +7,13 @@ mod engine_schematic;
 fn main() {
     let rows: Vec<&str> = ENGINE_SCHEMATIC.split('\n').collect();
     let num_rows = rows.len();
-    let num_cols = rows[0].chars().count();
+    let num_cols: usize = rows[0].chars().count();
+
+    let mut potentiel_gears_map: HashMap<(usize, usize), u32> = HashMap::new();
+
     let mut sum_part_numbers = 0;
+    let mut sum_gears_ratio = 0;
+
     let mut i = 0;
     while i < num_rows {
         let mut j = 0;
@@ -32,6 +39,13 @@ fn main() {
                     None => break,
                 }
             }
+
+            let number_value = rows[i]
+                .get(number_start_index..(number_end_index + 1))
+                .unwrap()
+                .parse::<u32>()
+                .unwrap();
+            println!("number_value {}", number_value);
 
             // read points around the number
             let ii_start = if i == 0 { 0 } else { i - 1 };
@@ -62,20 +76,23 @@ fn main() {
                         if is_symbol(character) {
                             println!("found symbol {}", character);
                             is_part_number = true;
+
+                            if character == '*' {
+                                if let Some(value) = potentiel_gears_map.remove(&(ii, jj)) {
+                                    sum_gears_ratio += value * number_value;
+                                } else {
+                                    potentiel_gears_map.insert((ii, jj), number_value);
+                                }
+                            }
+
                             break 'ii;
                         }
                     }
                 }
             }
 
-            let part_number_value = rows[i]
-                .get(number_start_index..(number_end_index + 1))
-                .unwrap()
-                .parse::<u32>()
-                .unwrap();
-            println!("part_number_value {}", part_number_value);
             if is_part_number {
-                sum_part_numbers += part_number_value;
+                sum_part_numbers += number_value;
             }
 
             j += number_end_index - number_start_index + 1;
@@ -84,6 +101,7 @@ fn main() {
         i += 1;
     }
     println!("Sum of all part numbers: {}", sum_part_numbers);
+    println!("Sum of all gears ratios: {}", sum_gears_ratio);
 }
 
 fn is_symbol(char: char) -> bool {
