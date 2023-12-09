@@ -38,17 +38,13 @@ fn main() {
 
             let card_count = cards_count_map.entry(card_index).or_insert(1).clone();
 
-            for i in (card_index + 1)..(card_index + matching_numbers_count + 1) {
-                let entry: &mut u32 = cards_count_map.entry(i).or_insert(1);
-                *entry += card_count;
+            for next_card_index in card_index + 1..card_index + matching_numbers_count + 1 {
+                let next_card_count = cards_count_map.entry(next_card_index).or_insert(1);
+                *next_card_count += card_count;
             }
 
             let score = u32::pow(2, matching_numbers_count as u32) / 2;
             sum += score;
-        }
-
-        for (card, card_count) in &cards_count_map {
-            println!("card: {}, card_count: {}", card, card_count);
         }
 
         let cards_count = cards_count_map.values().fold(0, |acc, &value| acc + value);
