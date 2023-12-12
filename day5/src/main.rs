@@ -102,17 +102,18 @@ fn main() {
 fn map_ranges(ranges: Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Range<u64>> {
     let mut mapped_ranges: Vec<Range<u64>> = Vec::new();
     let mut ranges_stack = ranges.clone();
-
+    let mut loop_info_map: HashMap<Range<u64>,u32> = HashMap::new();
     while !ranges_stack.is_empty() {
         let range = ranges_stack.pop().unwrap();
-
-        'map: for mapper in &mappers {
+        for mapper in &mappers {
             let map_result = map_range(&range, &mapper);
             for res in map_result {
-                if res.matched_mapper || res.range == range {
+                if res.matched_mapper {
                     mapped_ranges.push(res.range);
-                    break 'map;
                 } else {
+                    // in the loop info map set this range as tried with mapper and didnt match 
+                    // check if this particular range has been checked with all mappers
+                    // if yes -> accept it in the mapped_ranges
                     ranges_stack.push(res.range);
                 }
             }
