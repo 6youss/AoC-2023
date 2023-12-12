@@ -83,7 +83,43 @@ fn main() {
             }
         }
     }
-    println!("{:?}", seeds_ranges);
+
+    let mut soil_ranges: Vec<Range<u64>> = Vec::new();
+
+    for seed_range in &seeds_ranges {
+        for mapper in &seed_mappers {
+            let map_result = map_range(&seed_range, &mapper);
+            for res in map_result {
+                if res.matched_mapper {
+                    soil_ranges.push(res.range);
+                } else {
+                }
+            }
+        }
+    }
+}
+
+fn map_ranges(ranges: Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Range<u64>> {
+    let mut mapped_ranges: Vec<Range<u64>> = Vec::new();
+    let mut ranges_stack = ranges.clone();
+
+    while !ranges_stack.is_empty() {
+        let range = ranges_stack.pop().unwrap();
+
+        'map: for mapper in &mappers {
+            let map_result = map_range(&range, &mapper);
+            for res in map_result {
+                if res.matched_mapper || res.range == range {
+                    mapped_ranges.push(res.range);
+                    break 'map;
+                } else {
+                    ranges_stack.push(res.range);
+                }
+            }
+        }
+    }
+
+    return mapped_ranges;
 }
 
 #[derive(Debug, PartialEq)]
@@ -124,8 +160,6 @@ fn map_range(source_range: &Range<u64>, mapper: &CategoryMapper) -> Vec<RangeMap
     let mut result: Vec<RangeMapingResult> = Vec::new();
 
     let range_relation = determine_range_relation(&mapper.source, source_range);
-
-    println!("range_relation: {:?}", range_relation);
 
     match range_relation {
         RangeRelation::FullyInside => {
@@ -192,6 +226,25 @@ fn map_value_inside_range(value: u64, mapper: &CategoryMapper) -> u64 {
 mod tests {
     use super::*;
 
+    #[test]
+    fn test_map_ranges() {
+        assert_eq!(
+            map_ranges(
+                vec![6..7],
+                vec![
+                    CategoryMapper {
+                        source: 0..5,
+                        dest: 50..55,
+                    },
+                    CategoryMapper {
+                        source: 5..8,
+                        dest: 100..103,
+                    }
+                ]
+            ),
+            vec![53..54, 51..52,]
+        );
+    }
     #[test]
     fn test_map_range() {
         assert_eq!(
