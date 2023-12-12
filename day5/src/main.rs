@@ -86,17 +86,6 @@ fn main() {
 
     let mut soil_ranges: Vec<Range<u64>> = Vec::new();
 
-    for seed_range in &seeds_ranges {
-        for mapper in &seed_mappers {
-            let map_result = map_range(&seed_range, &mapper);
-            for res in map_result {
-                if res.matched_mapper {
-                    soil_ranges.push(res.range);
-                } else {
-                }
-            }
-        }
-    }
 }
 
 fn map_ranges(ranges: Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Range<u64>> {
@@ -114,6 +103,9 @@ fn map_ranges(ranges: Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Rang
                     // in the loop info map set this range as tried with mapper and didnt match 
                     // check if this particular range has been checked with all mappers
                     // if yes -> accept it in the mapped_ranges
+                    // push in mapped ranges
+                    
+                    // else return it to the stack
                     ranges_stack.push(res.range);
                 }
             }
