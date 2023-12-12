@@ -84,35 +84,55 @@ fn main() {
         }
     }
 
-    let mut soil_ranges: Vec<Range<u64>> = Vec::new();
+    let soil_ranges = map_ranges(&seeds_ranges, seed_mappers);
+    let fertilizer_ranges = map_ranges(&soil_ranges, soil_mappers);
+    let water_ranges = map_ranges(&fertilizer_ranges, fertilizer_mappers);
+    let light_ranges = map_ranges(&water_ranges, water_mappers);
+    let temperature_ranges = map_ranges(&light_ranges, light_mappers);
+    let humidity_ranges = map_ranges(&temperature_ranges, temperature_mappers);
+    let location_ranges = map_ranges(&humidity_ranges, humidity_mappers);
 
+    let min_location = location_ranges
+        .iter()
+        .map(|range| range.start)
+        .min()
+        .unwrap();
+    println!("~~~~~~> minimun location {}", min_location);
 }
 
-fn map_ranges(ranges: Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Range<u64>> {
-    let mut mapped_ranges: Vec<Range<u64>> = Vec::new();
+fn map_ranges(ranges: &Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Range<u64>> {
+    let mut result: Vec<Range<u64>> = Vec::new();
     let mut ranges_stack = ranges.clone();
-    let mut loop_info_map: HashMap<Range<u64>,u32> = HashMap::new();
+
     while !ranges_stack.is_empty() {
         let range = ranges_stack.pop().unwrap();
+        let mut has_matched_mapper = false;
         for mapper in &mappers {
-            let map_result = map_range(&range, &mapper);
-            for res in map_result {
-                if res.matched_mapper {
-                    mapped_ranges.push(res.range);
-                } else {
-                    // in the loop info map set this range as tried with mapper and didnt match 
-                    // check if this particular range has been checked with all mappers
-                    // if yes -> accept it in the mapped_ranges
-                    // push in mapped ranges
-                    
-                    // else return it to the stack
-                    ranges_stack.push(res.range);
+            let range_mapping_results = map_range(&range, &mapper);
+            let range_mapping_results_count = range_mapping_results.len();
+
+            for rmr in range_mapping_results {
+                if rmr.matched_mapper {
+                    result.push(rmr.range);
+                    has_matched_mapper = true;
+
+                // else: only push to stack the case where one new range was created (the mapper created new unmatched ranges)
+                } else if range_mapping_results_count > 1 {
+                    ranges_stack.push(rmr.range);
                 }
             }
+
+            if has_matched_mapper == true {
+                break;
+            }
+        }
+        // if we checked all mappers and didnt hit any mapper for the current range
+        // push it to resluts and go next
+        if !has_matched_mapper {
+            result.push(range);
         }
     }
-
-    return mapped_ranges;
+    return result;
 }
 
 #[derive(Debug, PartialEq)]
@@ -223,7 +243,7 @@ mod tests {
     fn test_map_ranges() {
         assert_eq!(
             map_ranges(
-                vec![6..7],
+                &vec![4..7],
                 vec![
                     CategoryMapper {
                         source: 0..5,
@@ -235,7 +255,7 @@ mod tests {
                     }
                 ]
             ),
-            vec![53..54, 51..52,]
+            vec![54..55, 100..102,]
         );
     }
     #[test]
