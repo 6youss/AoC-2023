@@ -102,6 +102,7 @@ fn main() {
 
 fn map_ranges(ranges: &Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Range<u64>> {
     let mut result: Vec<Range<u64>> = Vec::new();
+
     let mut ranges_stack = ranges.clone();
 
     while !ranges_stack.is_empty() {
