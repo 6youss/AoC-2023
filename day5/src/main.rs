@@ -97,7 +97,7 @@ fn main() {
         .map(|range| range.start)
         .min()
         .unwrap();
-    println!("~~~~~~> minimun location {}", min_location);
+    println!("~~~~~~> minimun location {} ⭐️⭐️", min_location);
 }
 
 fn map_ranges(ranges: &Vec<Range<u64>>, mappers: Vec<CategoryMapper>) -> Vec<Range<u64>> {
