@@ -28,6 +28,7 @@ fn main() {
     let mut maze: HashMap<&str, (&str, &str)> = HashMap::new();
 
     let mut starting_nodes: Vec<&str> = Vec::new();
+
     for line in lines.skip(1) {
         let parts: Vec<&str> = line.split(" = ").collect();
 
@@ -41,6 +42,7 @@ fn main() {
             starting_nodes.push(node);
         }
     }
+    println!("Starting nodes {:?}", starting_nodes);
     println!(
         "Walked {} steps",
         walk_maze(&maze, &instructions, &starting_nodes, 0)
