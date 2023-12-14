@@ -26,7 +26,7 @@ fn main() {
             }
         })
         .sum();
-    println!("⭐ {}", sum);
+    println!("⭐⭐ {}", sum);
 }
 
 fn compare_hands(hand1: &str, hand2: &str) -> Ordering {
@@ -81,6 +81,7 @@ fn get_hand_order(hand: &HandType) -> u32 {
         HandType::HighCard => 1,
     }
 }
+
 fn get_card_order(card: &char) -> Option<u32> {
     match card {
         'A' => Some(13),
@@ -122,17 +123,22 @@ fn get_hand_type(hand: &str) -> HandType {
         }
     }
 
-    let mut counts: Vec<u32> = count_map.values().cloned().collect();
-    counts.sort();
-    counts.reverse();
-
     // handle the J joker card
     let has_a_j = hand.contains('J');
 
     if has_a_j {
-        let j_count = count_map.get(&'J').unwrap();
-        if *j_count < 5 {}
+        let j_count = count_map.get(&'J').unwrap().clone();
+        if j_count < 5 {
+            count_map.remove(&'J');
+            let (card, _) = count_map.iter().max_by_key(|&(_, value)| value).unwrap();
+            let count = count_map.get(*&card).unwrap();
+            count_map.insert(*card, *count + j_count);
+        }
     }
+
+    let mut counts: Vec<u32> = count_map.values().cloned().collect();
+    counts.sort();
+    counts.reverse();
 
     let counts_len = counts.len();
     if counts_len == 1 {
@@ -147,10 +153,8 @@ fn get_hand_type(hand: &str) -> HandType {
         HandType::TwoPair
     } else if counts_len == 4 && counts[0] == 2 && counts[1] == 1 {
         HandType::OnePair
-    } else if counts_len == 5 {
-        HandType::HighCard
     } else {
-        HandType::FullHouse
+        HandType::HighCard
     }
 }
 
@@ -169,6 +173,7 @@ mod tests {
         assert_eq!(get_hand_type("AAA23"), HandType::ThreeOfAKind);
         assert_eq!(get_hand_type("AA332"), HandType::TwoPair);
         assert_eq!(get_hand_type("AAK32"), HandType::OnePair);
+        assert_eq!(get_hand_type("23456"), HandType::HighCard);
     }
 
     #[test]
