@@ -4,6 +4,7 @@ use crate::puzzle_input::PUZZLE_INPUT;
 
 mod puzzle_input;
 
+#[derive(Copy, Clone)]
 enum Direction {
     R,
     L,
@@ -24,7 +25,7 @@ fn main() {
         })
         .collect::<Vec<Direction>>();
 
-    let mut graph: HashMap<&str, (&str, &str)> = HashMap::new();
+    let mut maze: HashMap<&str, (&str, &str)> = HashMap::new();
 
     for line in lines.skip(1) {
         let parts: Vec<&str> = line.split(" = ").collect();
@@ -34,6 +35,32 @@ fn main() {
             .trim_matches(|p| p == '(' || p == ')')
             .split(", ")
             .collect();
-        graph.insert(node, (neighbours[0], neighbours[1]));
+        maze.insert(node, (neighbours[0], neighbours[1]));
+    }
+    println!("Walked {} steps", walk_maze(&maze, &instructions, "AAA", 0));
+}
+
+fn walk_maze(
+    maze: &HashMap<&str, (&str, &str)>,
+    instructions: &Vec<Direction>,
+    current_node: &str,
+    step: usize,
+) -> usize {
+    println!("Current node: {}", current_node);
+    if current_node == "ZZZ" {
+        return step;
+    }
+    let next_direction_index = step % instructions.len();
+    let next_direction = instructions[next_direction_index];
+    let navigation_instruction = maze.get(current_node).unwrap();
+    let next_node = get_next_node(*navigation_instruction, next_direction);
+
+    return walk_maze(maze, instructions, next_node, step + 1);
+}
+
+fn get_next_node<'a>(current_node: (&'a str, &'a str), current_direction: Direction) -> &str {
+    match current_direction {
+        Direction::L => current_node.0,
+        Direction::R => current_node.1,
     }
 }
