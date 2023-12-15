@@ -45,30 +45,45 @@ fn main() {
     println!("Starting nodes {:?}", starting_nodes);
     println!(
         "Walked {} steps",
-        walk_maze(&maze, &instructions, &starting_nodes, 0)
+        walk_maze(&maze, &instructions, &starting_nodes)
     );
 }
 
 fn walk_maze(
     maze: &HashMap<&str, (&str, &str)>,
     instructions: &Vec<Direction>,
-    current_nodes: &Vec<&str>,
-    step: usize,
+    starting_nodes: &Vec<&str>,
 ) -> usize {
-    println!("Current node: {:?}", current_nodes);
-    if all_end_with_z(current_nodes) {
-        return step;
+    let mut step: usize = 0;
+    let mut current_nodes: Vec<&str> = starting_nodes.clone();
+    let mut cycles: HashMap<&str, usize> = HashMap::new();
+    loop {
+        for (i, node) in current_nodes.iter().enumerate() {
+            if node.ends_with('Z') {
+                let corespendant_starting_node = starting_nodes[i];
+                if !cycles.contains_key(corespendant_starting_node) {
+                    cycles.insert(corespendant_starting_node, step);
+                }
+                println!("cycles {:?}", cycles);
+            }
+        }
+
+        if cycles.keys().len() == current_nodes.len() {
+            return find_lcm(cycles.values().clone().map(|e| *e as u64).collect()) as usize;
+        }
+
+        if all_end_with_z(&current_nodes) {
+            return step;
+        }
+        let next_direction_index = step % instructions.len();
+        let next_direction = instructions[next_direction_index];
+        let navigation_choices = current_nodes
+            .iter()
+            .map(|node| *maze.get(node).unwrap())
+            .collect();
+        current_nodes = get_next_nodes(navigation_choices, next_direction);
+        step += 1;
     }
-    let next_direction_index = step % instructions.len();
-    let next_direction = instructions[next_direction_index];
-
-    let navigation_instructions: Vec<(&str, &str)> = current_nodes
-        .iter()
-        .map(|node| *maze.get(node).unwrap())
-        .collect();
-    let next_nodes = get_next_nodes(&navigation_instructions, next_direction);
-
-    return walk_maze(maze, instructions, &next_nodes, step + 1);
 }
 
 fn all_end_with_z(navigation_choices: &Vec<&str>) -> bool {
@@ -83,11 +98,36 @@ fn get_next_node<'a>(navigation_choice: (&'a str, &'a str), current_direction: D
 }
 
 fn get_next_nodes<'a>(
-    navigation_choices: &'a Vec<(&'a str, &'a str)>,
+    navigation_choices: Vec<(&'a str, &'a str)>,
     current_direction: Direction,
 ) -> Vec<&'a str> {
     navigation_choices
         .iter()
         .map(|node| get_next_node(*node, current_direction))
         .collect()
+}
+
+fn gcd(mut a: u64, mut b: u64) -> u64 {
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    a
+}
+
+fn lcm(a: u64, b: u64) -> u64 {
+    if a == 0 || b == 0 {
+        0
+    } else {
+        (a * b) / gcd(a, b)
+    }
+}
+
+fn find_lcm(numbers: Vec<u64>) -> u64 {
+    let mut result = numbers[0];
+    for &num in numbers.iter().skip(1) {
+        result = lcm(result, num);
+    }
+    result
 }
