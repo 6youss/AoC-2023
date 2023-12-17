@@ -13,6 +13,10 @@ fn main() {
     for i in 0..num_rows {
         for j in 0..num_cols {
             let character = rows[i].chars().nth(j).unwrap();
+            let mut neighbours: Vec<&char> = Vec::new();
+            if let Some(top) = rows[i].chars().nth(j) {
+                neighbours.push(&top);
+            }
         }
     }
 }
