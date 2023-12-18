@@ -36,6 +36,37 @@ fn main() {
     println!("poly {:?}", poly);
 
     println!("steps {}", (steps + 1) / 2);
+
+    let enclosed_tiles = get_tiles_enclosed_by_poly(&lines, &poly);
+
+    println!("enclosed_tiles {:?}", enclosed_tiles);
+}
+
+fn get_tiles_enclosed_by_poly(
+    lines: &Vec<&str>,
+    poly: &Vec<(usize, usize)>,
+) -> Vec<(usize, usize)> {
+    let mut enclosed_tiles = Vec::new();
+    let num_rows = lines.len();
+    let num_cols: usize = lines[0].chars().count();
+    for row in 0..num_rows {
+        for col in 0..num_cols {
+            let tile_pos = (row, col);
+            if poly.contains(&tile_pos) {
+                continue;
+            }
+            let mut intersect_right_counter = 0;
+            for y in tile_pos.1..num_cols {
+                if poly.contains(&(tile_pos.0, y)) {
+                    intersect_right_counter += 1;
+                }
+            }
+            if intersect_right_counter % 2 != 0 {
+                enclosed_tiles.push(tile_pos);
+            }
+        }
+    }
+    enclosed_tiles
 }
 
 fn walk_pipe_lines(
