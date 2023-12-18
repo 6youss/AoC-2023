@@ -21,6 +21,7 @@ fn main() {
 
     let mut visited: HashMap<(usize, usize), bool> = HashMap::new();
     let mut steps = 0;
+    let mut poly: Vec<(usize, usize)> = Vec::new();
     walk_pipe_lines(
         &lines,
         &graph,
@@ -29,7 +30,10 @@ fn main() {
         s_position,
         &mut visited,
         &mut steps,
+        &mut poly,
     );
+
+    println!("poly {:?}", poly);
 
     println!("steps {}", (steps + 1) / 2);
 }
@@ -42,11 +46,13 @@ fn walk_pipe_lines(
     current_pos: (usize, usize),
     visited: &mut HashMap<(usize, usize), bool>,
     steps: &mut usize,
+    poly: &mut Vec<(usize, usize)>,
 ) {
     // Mark the current position as visited
     *visited.entry(current_pos).or_insert(false) = true;
     let current_char = lines[current_pos.0].chars().nth(current_pos.1).unwrap();
     println!("Visited position: ({:?}) {}", current_pos, current_char);
+    poly.push(current_pos);
 
     // Check neighbors of the current position
     if let Some(neighbors) = graph.get(&current_pos) {
@@ -62,6 +68,7 @@ fn walk_pipe_lines(
                     neighbor,
                     visited,
                     steps,
+                    poly,
                 );
             } else if let Some(present_parent) = parent {
                 if neighbor == start && present_parent != start {
