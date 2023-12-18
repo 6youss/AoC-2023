@@ -22,6 +22,7 @@ fn main() {
     let mut visited: HashMap<(usize, usize), bool> = HashMap::new();
     let mut steps = 0;
     let mut poly: Vec<(usize, usize)> = Vec::new();
+
     walk_pipe_lines(
         &lines,
         &graph,
@@ -37,9 +38,9 @@ fn main() {
 
     println!("steps {}", (steps + 1) / 2);
 
-    let enclosed_tiles = get_tiles_enclosed_by_poly(&lines, &poly);
+    // let enclosed_tiles = get_tiles_enclosed_by_poly(&lines, &poly);
 
-    println!("enclosed_tiles {:?}", enclosed_tiles);
+    // println!("enclosed_tiles {:?}", enclosed_tiles);
 }
 
 fn get_tiles_enclosed_by_poly(
@@ -49,8 +50,21 @@ fn get_tiles_enclosed_by_poly(
     let mut enclosed_tiles = Vec::new();
     let num_rows = lines.len();
     let num_cols: usize = lines[0].chars().count();
-    for row in 0..num_rows {
-        for col in 0..num_cols {
+    // Initialize min_col and min_row with the maximum possible value for usize
+    let mut min_row = usize::MAX;
+    let mut min_col = usize::MAX;
+
+    // Iterate through the vector to find the minimum col and row values
+    for &(col, row) in poly {
+        if col < min_col {
+            min_col = col;
+        }
+        if row < min_row {
+            min_row = row;
+        }
+    }
+    for row in min_row..num_rows {
+        for col in min_col..num_cols {
             let tile_pos = (row, col);
             if poly.contains(&tile_pos) {
                 continue;
@@ -79,10 +93,11 @@ fn walk_pipe_lines(
     steps: &mut usize,
     poly: &mut Vec<(usize, usize)>,
 ) {
+    println!("{}", steps);
     // Mark the current position as visited
     *visited.entry(current_pos).or_insert(false) = true;
-    let current_char = lines[current_pos.0].chars().nth(current_pos.1).unwrap();
-    println!("Visited position: ({:?}) {}", current_pos, current_char);
+    // let current_char = lines[current_pos.0].chars().nth(current_pos.1).unwrap();
+    // println!("Visited position: ({:?}) {}", current_pos, current_char);
     poly.push(current_pos);
 
     // Check neighbors of the current position
