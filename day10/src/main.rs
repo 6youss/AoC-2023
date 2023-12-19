@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use puzzle_input::PUZZLE_INPUT;
 
@@ -21,33 +21,32 @@ fn main() {
 
     let mut visited: HashMap<(usize, usize), bool> = HashMap::new();
     let mut steps = 0;
-    let mut poly: Vec<(usize, usize)> = Vec::new();
+    let mut poly: HashSet<(usize, usize)> = HashSet::new();
 
     walk_pipe_lines(
         &lines,
         &graph,
         s_position,
-        None,
         s_position,
         &mut visited,
         &mut steps,
         &mut poly,
     );
 
-    println!("poly {:?}", poly);
+    // println!("poly {:?}", poly);
 
-    println!("steps {}", (steps + 1) / 2);
+    // println!("steps {}", (steps + 1) / 2);
 
-    // let enclosed_tiles = get_tiles_enclosed_by_poly(&lines, &poly);
+    let enclosed_tiles = get_tiles_enclosed_by_poly(&lines, &poly);
 
     // println!("enclosed_tiles {:?}", enclosed_tiles);
 }
 
 fn get_tiles_enclosed_by_poly(
     lines: &Vec<&str>,
-    poly: &Vec<(usize, usize)>,
-) -> Vec<(usize, usize)> {
-    let mut enclosed_tiles = Vec::new();
+    poly: &HashSet<(usize, usize)>,
+) -> HashSet<(usize, usize)> {
+    let mut enclosed_tiles = HashSet::new();
     let num_rows = lines.len();
     let num_cols: usize = lines[0].chars().count();
     // Initialize min_col and min_row with the maximum possible value for usize
@@ -63,6 +62,7 @@ fn get_tiles_enclosed_by_poly(
             min_row = row;
         }
     }
+
     for row in min_row..num_rows {
         for col in min_col..num_cols {
             let tile_pos = (row, col);
@@ -76,7 +76,7 @@ fn get_tiles_enclosed_by_poly(
                 }
             }
             if intersect_right_counter % 2 != 0 {
-                enclosed_tiles.push(tile_pos);
+                enclosed_tiles.insert(tile_pos);
             }
         }
     }
@@ -87,39 +87,21 @@ fn walk_pipe_lines(
     lines: &Vec<&str>,
     graph: &HashMap<(usize, usize), Vec<(usize, usize)>>,
     start: (usize, usize),
-    parent: Option<(usize, usize)>,
     current_pos: (usize, usize),
     visited: &mut HashMap<(usize, usize), bool>,
     steps: &mut usize,
-    poly: &mut Vec<(usize, usize)>,
+    poly: &mut HashSet<(usize, usize)>,
 ) {
-    println!("{}", steps);
     // Mark the current position as visited
     *visited.entry(current_pos).or_insert(false) = true;
-    // let current_char = lines[current_pos.0].chars().nth(current_pos.1).unwrap();
-    // println!("Visited position: ({:?}) {}", current_pos, current_char);
-    poly.push(current_pos);
 
-    // Check neighbors of the current position
+    poly.insert(current_pos);
+
     if let Some(neighbors) = graph.get(&current_pos) {
         for &neighbor in neighbors {
-            // Visit unvisited neighbors
             if !visited.get(&neighbor).cloned().unwrap_or(false) {
                 *steps += 1;
-                walk_pipe_lines(
-                    lines,
-                    graph,
-                    start,
-                    Some(current_pos),
-                    neighbor,
-                    visited,
-                    steps,
-                    poly,
-                );
-            } else if let Some(present_parent) = parent {
-                if neighbor == start && present_parent != start {
-                    println!("-----> Loop");
-                }
+                walk_pipe_lines(lines, graph, start, neighbor, visited, steps, poly);
             }
         }
     }
