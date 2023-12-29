@@ -14,35 +14,46 @@ fn main() {
             )
         };
 
-        let is_accepted = is_accepted_line(spring_arrangement, &groups);
-        dbg!(spring_arrangement, is_accepted);
+        let possibilities = possibilities(spring_arrangement, &groups);
+        dbg!(spring_arrangement, possibilities);
     }
 }
 
-fn is_accepted_line(spring_arrangement: &str, groups: &Vec<usize>) -> bool {
+fn possibilities(spring_arrangement: &str, groups: &Vec<usize>) -> usize {
     let mut new_line = spring_arrangement.trim_start_matches(".");
 
-    if new_line.len() == 0 && groups.len() == 0 {
-        return true;
+    if groups.len() == 0 {
+        if new_line.len() == 0 {
+            return 1;
+        }
+        return 0;
     }
+
+    if new_line.len() < groups.iter().sum() {
+        return 0;
+    }
+
     if new_line.starts_with("#") {
-        let group_end_length = groups[0];
-        let chunk = &new_line[..group_end_length];
+        let group_value = groups[0];
+
+        let chunk = &new_line[..group_value];
 
         if chunk.contains(".") {
-            return false;
+            return 0;
         }
-        let next_char = new_line.chars().nth(group_end_length);
+        let next_char = new_line.chars().nth(group_value);
 
-        let is_group_end = match next_char {
-            Some(c) => c == '.',
+        let next_is_seperator = match next_char {
+            Some(c) => c != '#',
             None => true,
         };
-        if !is_group_end {
-            return false;
+        if !next_is_seperator {
+            return 0;
         }
-        new_line = &new_line[group_end_length..];
-        return is_accepted_line(new_line, &groups[1..].to_vec());
-    }
-    return false;
+        new_line = &new_line[group_value..];
+        return possibilities(new_line, &groups[1..].to_vec());
+    };
+
+    return possibilities(&new_line.replacen("?", "#", 1), groups)
+        + possibilities(&new_line.replacen("?", ".", 1), groups);
 }
