@@ -2,6 +2,7 @@ use puzzle_input::PUZZLE_INPUT;
 
 mod puzzle_input;
 fn main() {
+    let mut total_possibilities = 0;
     for line in PUZZLE_INPUT.lines() {
         let (spring_arrangement, groups) = {
             let line: Vec<&str> = line.split(" ").collect();
@@ -14,46 +15,59 @@ fn main() {
             )
         };
 
-        let possibilities = possibilities(spring_arrangement, &groups);
-        dbg!(spring_arrangement, possibilities);
+        let line_possibilities = possibilities(spring_arrangement, &groups);
+        dbg!(spring_arrangement, line_possibilities);
+        total_possibilities += line_possibilities;
+        println!("total possibilities: {} ⭐️", total_possibilities);
     }
 }
 
-fn possibilities(spring_arrangement: &str, groups: &Vec<usize>) -> usize {
-    let mut new_line = spring_arrangement.trim_start_matches(".");
+fn possibilities(springs: &str, groups: &Vec<usize>) -> usize {
+    // println!("_____________________________________________");
+    // dbg!(springs, groups);
 
+    let springs = springs.trim_start_matches(".");
     if groups.len() == 0 {
-        if new_line.len() == 0 {
-            return 1;
-        }
-        return 0;
-    }
-
-    if new_line.len() < groups.iter().sum() {
-        return 0;
-    }
-
-    if new_line.starts_with("#") {
-        let group_value = groups[0];
-
-        let chunk = &new_line[..group_value];
-
-        if chunk.contains(".") {
+        if springs.contains('#') {
+            // dbg!("no groups left, but still some springs");
             return 0;
         }
-        let next_char = new_line.chars().nth(group_value);
+        // dbg!("found one");
+        return 1;
+    }
 
-        let next_is_seperator = match next_char {
+    if springs.len() == 0 || springs.len() < groups.iter().sum::<usize>() {
+        // dbg!("no springs left, but still some groups");
+        return 0;
+    }
+
+    if springs.starts_with("#") {
+        let group_length = groups[0];
+
+        let chunk = &springs[..group_length];
+
+        if chunk.contains(".") {
+            // dbg!("seperator in group");
+            return 0;
+        }
+
+        let next_is_seperator = match springs.chars().nth(group_length) {
             Some(c) => c != '#',
             None => true,
         };
+
         if !next_is_seperator {
+            // dbg!("next is not seperator");
             return 0;
         }
-        new_line = &new_line[group_value..];
-        return possibilities(new_line, &groups[1..].to_vec());
+        let hh = if groups.len() > 1 { 1 } else { 0 };
+        return possibilities(&springs[group_length + hh..], &groups[1..].to_vec());
     };
 
-    return possibilities(&new_line.replacen("?", "#", 1), groups)
-        + possibilities(&new_line.replacen("?", ".", 1), groups);
+    if springs.starts_with("?") {
+        return possibilities(format!(".{}", &springs[1..]).as_str(), groups)
+            + possibilities(format!("#{}", &springs[1..]).as_str(), groups);
+    };
+    // dbg!("no match");
+    return 0;
 }
