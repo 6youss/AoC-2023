@@ -1,8 +1,12 @@
+use std::collections::HashMap;
+
 use puzzle_input::PUZZLE_INPUT;
 
 mod puzzle_input;
 fn main() {
     let mut total_possibilities = 0;
+    let mut cache: HashMap<String, usize> = HashMap::new();
+
     for line in PUZZLE_INPUT.lines() {
         let (spring_arrangement, groups) = {
             let line: Vec<&str> = line.split(" ").collect();
@@ -15,14 +19,35 @@ fn main() {
             )
         };
 
-        let line_possibilities = possibilities(spring_arrangement, &groups);
-        dbg!(spring_arrangement, line_possibilities);
-        total_possibilities += line_possibilities;
-        println!("total possibilities: {} ⭐️", total_possibilities);
-    }
-}
+        // let line_possibilities = possibilities(spring_arrangement, &groups);
+        // dbg!(spring_arrangement, line_possibilities);
+        // total_possibilities += line_possibilities;
 
-fn possibilities(springs: &str, groups: &Vec<usize>) -> usize {
+        let aragements_p2 = format!(
+            "{}?{}?{}?{}?{}",
+            spring_arrangement,
+            spring_arrangement,
+            spring_arrangement,
+            spring_arrangement,
+            spring_arrangement
+        );
+        let mut groups_p2 = groups.clone();
+        groups_p2.extend(&groups);
+        groups_p2.extend(&groups);
+        groups_p2.extend(&groups);
+        groups_p2.extend(&groups);
+
+        let line_possibilities = possibilities(aragements_p2.as_str(), &groups_p2, &mut cache);
+        // dbg!(spring_arrangement, line_possibilities);
+        total_possibilities += line_possibilities;
+    }
+    println!("total possibilities: {} ⭐️⭐️", total_possibilities);
+}
+fn possibilities(springs: &str, groups: &Vec<usize>, cache: &mut HashMap<String, usize>) -> usize {
+    let cache_key = format!("{}-{:?}", springs, groups);
+    if let Some(cached) = cache.get(&cache_key) {
+        return *cached;
+    }
     // println!("_____________________________________________");
     // dbg!(springs, groups);
 
@@ -60,13 +85,22 @@ fn possibilities(springs: &str, groups: &Vec<usize>) -> usize {
             // dbg!("next is not seperator");
             return 0;
         }
-        let hh = if groups.len() > 1 { 1 } else { 0 };
-        return possibilities(&springs[group_length + hh..], &groups[1..].to_vec());
+        let offset_seperator = if groups.len() > 1 { 1 } else { 0 };
+        let result = possibilities(
+            &springs[group_length + offset_seperator..],
+            &groups[1..].to_vec(),
+            cache,
+        );
+        cache.insert(cache_key, result);
+        return result;
     };
 
     if springs.starts_with("?") {
-        return possibilities(format!(".{}", &springs[1..]).as_str(), groups)
-            + possibilities(format!("#{}", &springs[1..]).as_str(), groups);
+        let result = possibilities(format!(".{}", &springs[1..]).as_str(), groups, cache)
+            + possibilities(format!("#{}", &springs[1..]).as_str(), groups, cache);
+        cache.insert(cache_key, result);
+
+        return result;
     };
     // dbg!("no match");
     return 0;
